@@ -7,7 +7,7 @@ import {
   serializeSignDoc,
   StdSignDoc,
 } from "@cosmjs/amino";
-import { HdPath } from "@cosmjs/crypto";
+import { HdPath, pathToString } from "@cosmjs/crypto";
 import Transport from "@ledgerhq/hw-transport";
 
 import { AddressAndPubkey, LedgerConnector, LedgerConnectorOptions } from "./ledgerconnector";
@@ -26,11 +26,20 @@ export class LedgerSigner implements OfflineAminoSigner {
     if (!this.accounts) {
       const pubkeys = await this.connector.getPubkeys();
       this.accounts = await Promise.all(
-        pubkeys.map(async (pubkey) => ({
-          algo: "secp256k1" as const,
-          address: await this.connector.getCosmosAddress(pubkey),
-          pubkey: pubkey,
-        })),
+        pubkeys.map(async (pubkey, index) => {
+          const components = pathToString(this.hdPaths[index]).split("/");
+          if (components.length < 3) {
+            throw new Error("Invalid hdPath. Coin type is missing");
+          }
+
+          const coinType = components[2];
+          return {
+            algo: "secp256k1" as const,
+            address: await this.connector.getCosmosAddress(pubkey),
+            coinType: coinType,
+            pubkey: pubkey,
+          };
+        }),
       );
     }
 
