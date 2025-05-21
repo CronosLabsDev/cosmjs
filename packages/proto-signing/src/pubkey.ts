@@ -80,11 +80,20 @@ export function anyToSinglePubkey(pubkey: Any): SinglePubkey {
       const { key } = CosmosCryptoSecp256k1Pubkey.decode(pubkey.value);
       return encodeSecp256k1Pubkey(key);
     }
+    case "/cosmos.crypto.ed25519.PubKey": {
+      const { key } = CosmosCryptoEd25519Pubkey.decode(pubkey.value);
+      return encodeEd25519Pubkey(key);
+    }
     default:
       throw new Error(`Pubkey type_url ${pubkey.typeUrl} not recognized as single public key type`);
   }
 }
 
+/**
+ * Decodes a pubkey from a protobuf `Any` into `Pubkey`.
+ * This supports single pubkeys such as Cosmos ed25519 and secp256k1 keys
+ * as well as multisig threshold pubkeys.
+ */
 export function decodePubkey(pubkey: Any): Pubkey {
   switch (pubkey.typeUrl) {
     case "/ethermint.crypto.v1.ethsecp256k1.PubKey":

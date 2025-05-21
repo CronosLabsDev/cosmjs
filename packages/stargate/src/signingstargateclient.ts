@@ -1,9 +1,4 @@
-import {
-  encodeEthSecp256k1Pubkey,
-  encodeSecp256k1Pubkey,
-  makeSignDoc as makeSignDocAmino,
-  StdFee,
-} from "@cosmjs/amino";
+import { encodeEthSecp256k1Pubkey, encodeSecp256k1Pubkey, makeSignDoc as makeSignDocAmino, StdFee } from "@cosmjs/amino";
 import { fromBase64 } from "@cosmjs/encoding";
 import { Int53, Uint53 } from "@cosmjs/math";
 import {
@@ -339,8 +334,8 @@ export class SigningStargateClient extends StargateClient {
     messages: readonly EncodeObject[],
     fee: StdFee | "auto" | number,
     memo = "",
-    coinType = "",
     timeoutHeight?: bigint,
+    coinType = "",
   ): Promise<string> {
     let usedFee: StdFee;
     if (fee == "auto" || typeof fee === "number") {
@@ -371,7 +366,7 @@ export class SigningStargateClient extends StargateClient {
     messages: readonly EncodeObject[],
     fee: StdFee,
     memo: string,
-    coinType: string,
+    coinType = "",
     explicitSignerData?: SignerData,
     timeoutHeight?: bigint,
   ): Promise<TxRaw> {
@@ -389,8 +384,8 @@ export class SigningStargateClient extends StargateClient {
     }
 
     return isOfflineDirectSigner(this.signer)
-      ? this.signDirect(signerAddress, messages, fee, memo, coinType, signerData, timeoutHeight)
-      : this.signAmino(signerAddress, messages, fee, memo, coinType, signerData, timeoutHeight);
+      ? this.signDirect(signerAddress, messages, fee, memo, signerData,coinType, timeoutHeight)
+      : this.signAmino(signerAddress, messages, fee, memo, signerData,coinType,  timeoutHeight);
   }
 
   private async signAmino(
@@ -398,8 +393,8 @@ export class SigningStargateClient extends StargateClient {
     messages: readonly EncodeObject[],
     fee: StdFee,
     memo: string,
-    coinType: string,
     { accountNumber, sequence, chainId }: SignerData,
+    coinType = "",
     timeoutHeight?: bigint,
   ): Promise<TxRaw> {
     assert(!isOfflineDirectSigner(this.signer));
@@ -458,8 +453,8 @@ export class SigningStargateClient extends StargateClient {
     messages: readonly EncodeObject[],
     fee: StdFee,
     memo: string,
-    coinType: string,
     { accountNumber, sequence, chainId }: SignerData,
+    coinType = "",
     timeoutHeight?: bigint,
   ): Promise<TxRaw> {
     assert(isOfflineDirectSigner(this.signer));
@@ -469,7 +464,7 @@ export class SigningStargateClient extends StargateClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-
+    
     let pubkey;
     switch (true) {
       case coinType === hardenedEthermintCoinType || coinType === ethermintCoinType: {

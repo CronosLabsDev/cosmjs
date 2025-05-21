@@ -1,6 +1,7 @@
 {
   "name": "cosmjs-monorepo-root",
   "description": "Transaction codec and client to communicate with any wasmd blockchain",
+  "private": true,
   "author": "Ethan Frey <ethanfrey@users.noreply.github.com>",
   "license": "Apache-2.0",
   "main": "build/index.js",
@@ -16,7 +17,8 @@
     "url": "https://github.com/cosmos/cosmjs"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "workspaces": [
     "packages/*"
@@ -35,8 +37,7 @@
     "docs": "yarn workspaces foreach --topological-dev --parallel --verbose run docs",
     "pack-web": "yarn workspaces foreach --topological-dev --parallel --verbose run pack-web",
     "publish-next": "yarn workspaces foreach --no-private exec yarn npm publish --tag next",
-    "publish-latest": "yarn workspaces foreach --no-private exec yarn npm publish",
-    "release": "yarn build && release-it --no-git.tag --npm.publish --git.push"
+    "publish-latest": "yarn workspaces foreach --no-private exec yarn npm publish"
   },
   "devDependencies": {
     "@cosmjs/amino": "workspace:^",
@@ -46,10 +47,12 @@
     "@cosmjs/proto-signing": "workspace:^",
     "@cosmjs/stargate": "workspace:^",
     "eslint": "^7.5",
+    "node-gyp": "^11.2.0",
     "prettier": "^2.8.8",
-    "release-it": "^14.11.6",
     "typescript": "~4.9"
   },
   "packageManager": "yarn@3.6.3",
-  "version": "0.31.0-alpha.9"
+  "dependencies": {
+    "usb": "1.9.2"
+  }
 }

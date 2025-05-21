@@ -13,19 +13,23 @@ export { anyToSinglePubkey, decodeOptionalPubkey, decodePubkey, encodePubkey } f
 export {
   DecodeObject,
   EncodeObject,
-  GeneratedType, PbjsGeneratedType,
+  GeneratedType,
+  isPbjsGeneratedType,
+  isTsProtoGeneratedType,
+  isTxBodyEncodeObject,
+  PbjsGeneratedType,
   Registry,
   TsProtoGeneratedType,
-  TxBodyEncodeObject, isPbjsGeneratedType,
-  isTsProtoGeneratedType,
-  isTxBodyEncodeObject
+  TxBodyEncodeObject
 } from "./registry";
 export {
   AccountData,
   Algo,
-  DirectSignResponse, OfflineDirectSigner,
-  OfflineSigner, isOfflineDirectSigner
+  DirectSignResponse,
+  isOfflineDirectSigner,
+  OfflineDirectSigner,
+  OfflineSigner
 } from "./signer";
 export { makeAuthInfoBytes, makeSignBytes, makeSignDoc } from "./signing";
-export { KdfConfiguration, executeKdf } from "./wallet";
+export { executeKdf, KdfConfiguration } from "./wallet";
 

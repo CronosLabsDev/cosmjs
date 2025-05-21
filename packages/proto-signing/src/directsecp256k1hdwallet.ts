@@ -1,6 +1,6 @@
 import {
-  encodeSecp256k1Signature,
   encodeEthSecp256k1Signature,
+  encodeSecp256k1Signature,
   makeCosmoshubPath,
   rawSecp256k1PubkeyToRawAddress,
 } from "@cosmjs/amino";
@@ -8,6 +8,7 @@ import {
   Bip39,
   EnglishMnemonic,
   HdPath,
+  Keccak256,
   pathToString,
   Random,
   Secp256k1,
@@ -16,9 +17,8 @@ import {
   Slip10,
   Slip10Curve,
   stringToPath,
-  Keccak256,
 } from "@cosmjs/crypto";
-import { fromBase64, fromUtf8, toBase64, toBech32, toUtf8, fromHex, toHex, toAscii } from "@cosmjs/encoding";
+import { fromBase64, fromHex, fromUtf8, toAscii, toBase64, toBech32, toHex, toUtf8 } from "@cosmjs/encoding";
 import { assert, isNonNullObject } from "@cosmjs/utils";
 import { SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
