@@ -3,6 +3,7 @@ import {
   encodeEd25519Pubkey,
   encodeSecp256k1Pubkey,
   isEd25519Pubkey,
+  isEthSecp256k1Pubkey,
   isMultisigThresholdPubkey,
   isSecp256k1Pubkey,
   MultisigThresholdPubkey,
@@ -39,6 +40,14 @@ export function encodePubkey(pubkey: Pubkey): Any {
       typeUrl: "/cosmos.crypto.ed25519.PubKey",
       value: Uint8Array.from(CosmosCryptoEd25519Pubkey.encode(pubkeyProto).finish()),
     });
+  } else if (isEthSecp256k1Pubkey(pubkey)) {
+    const pubkeyProto = CosmosCryptoSecp256k1Pubkey.fromPartial({
+      key: fromBase64(pubkey.value),
+    });
+    return Any.fromPartial({
+      typeUrl: "/ethermint.crypto.v1.ethsecp256k1.PubKey",
+      value: Uint8Array.from(CosmosCryptoSecp256k1Pubkey.encode(pubkeyProto).finish()),
+    });
   } else if (isMultisigThresholdPubkey(pubkey)) {
     const pubkeyProto = LegacyAminoPubKey.fromPartial({
       threshold: Uint53.fromString(pubkey.value.threshold).toNumber(),
@@ -57,10 +66,16 @@ export function encodePubkey(pubkey: Pubkey): Any {
  * Decodes a single pubkey (i.e. not a multisig pubkey) from `Any` into
  * `SinglePubkey`.
  *
- * In most cases you probably want to use `decodePubkey`.
+ * In most cases you probably want to use `decodePubkey`, but `anyToSinglePubkey`
+ * might be preferred in CosmJS 0.29.x due to https://github.com/cosmos/cosmjs/issues/1289.
  */
 export function anyToSinglePubkey(pubkey: Any): SinglePubkey {
   switch (pubkey.typeUrl) {
+    case "/cosmos.crypto.ed25519.PubKey": {
+      const { key } = CosmosCryptoEd25519Pubkey.decode(pubkey.value);
+      return encodeEd25519Pubkey(key);
+    }
+    case "/ethermint.crypto.v1.ethsecp256k1.PubKey":
     case "/cosmos.crypto.secp256k1.PubKey": {
       const { key } = CosmosCryptoSecp256k1Pubkey.decode(pubkey.value);
       return encodeSecp256k1Pubkey(key);
@@ -81,6 +96,7 @@ export function anyToSinglePubkey(pubkey: Any): SinglePubkey {
  */
 export function decodePubkey(pubkey: Any): Pubkey {
   switch (pubkey.typeUrl) {
+    case "/ethermint.crypto.v1.ethsecp256k1.PubKey":
     case "/cosmos.crypto.secp256k1.PubKey":
     case "/cosmos.crypto.ed25519.PubKey": {
       return anyToSinglePubkey(pubkey);
@@ -97,6 +113,30 @@ export function decodePubkey(pubkey: Any): Pubkey {
       return out;
     }
     default:
-      throw new Error(`Pubkey type_url ${pubkey.typeUrl} not recognized`);
+      throw new Error(`Pubkey type URL '${pubkey.typeUrl}' not recognized`);
+  }
+}
+
+/**
+ * Decodes an optional pubkey from a protobuf `Any` into `Pubkey | null`.
+ * This supports single pubkeys such as Cosmos ed25519 and secp256k1 keys
+ * as well as multisig threshold pubkeys.
+ */
+export function decodeOptionalPubkey(pubkey: Any | null | undefined): Pubkey | null {
+  if (!pubkey) return null;
+  if (pubkey.typeUrl) {
+    if (pubkey.value.length) {
+      // both set
+      return decodePubkey(pubkey);
+    } else {
+      throw new Error(`Pubkey is an Any with type URL '${pubkey.typeUrl}' but an empty value`);
+    }
+  } else {
+    if (pubkey.value.length) {
+      throw new Error(`Pubkey is an Any with an empty type URL but a value set`);
+    } else {
+      // both unset, assuming this empty instance means null
+      return null;
+    }
   }
 }
