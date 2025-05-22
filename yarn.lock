@@ -3086,6 +3086,7 @@ __metadata:
     "@cosmjs/proto-signing": "workspace:^"
     "@cosmjs/stargate": "workspace:^"
     eslint: "npm:^7.5"
+    node-gyp: "npm:9.4.0"
     prettier: "npm:^2.8.8"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5808,7 +5809,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp@npm:latest":
+"node-gyp@npm:9.4.0, node-gyp@npm:latest":
   version: 9.4.0
   resolution: "node-gyp@npm:9.4.0"
   dependencies:

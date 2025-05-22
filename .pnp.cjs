@@ -2903,6 +2903,7 @@ const RAW_RUNTIME_STATE =
           ["@cosmjs/proto-signing", "workspace:packages/proto-signing"],\
           ["@cosmjs/stargate", "workspace:packages/stargate"],\
           ["eslint", "npm:7.26.0"],\
+          ["node-gyp", "npm:9.4.0"],\
           ["prettier", "npm:2.8.8"],\
           ["typescript", "patch:typescript@npm%3A4.9.5#optional!builtin<compat/typescript>::version=4.9.5&hash=289587"]\
         ],\
@@ -7177,6 +7178,7 @@ const RAW_RUNTIME_STATE =
           ["@cosmjs/proto-signing", "workspace:packages/proto-signing"],\
           ["@cosmjs/stargate", "workspace:packages/stargate"],\
           ["eslint", "npm:7.26.0"],\
+          ["node-gyp", "npm:9.4.0"],\
           ["prettier", "npm:2.8.8"],\
           ["typescript", "patch:typescript@npm%3A4.9.5#optional!builtin<compat/typescript>::version=4.9.5&hash=289587"]\
         ],\
