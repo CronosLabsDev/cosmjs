@@ -1,4 +1,9 @@
-import { encodeSecp256k1Pubkey, makeSignDoc as makeSignDocAmino, StdFee } from "@cosmjs/amino";
+import {
+  encodeEthSecp256k1Pubkey,
+  encodeSecp256k1Pubkey,
+  makeSignDoc as makeSignDocAmino,
+  StdFee,
+} from "@cosmjs/amino";
 import { fromBase64 } from "@cosmjs/encoding";
 import { Int53, Uint53 } from "@cosmjs/math";
 import {
@@ -51,6 +56,9 @@ import {
   createVestingAminoConverters,
 } from "./modules";
 import { DeliverTxResponse, StargateClient, StargateClientOptions } from "./stargateclient";
+
+const ethermintCoinType = "60";
+const hardenedEthermintCoinType = "60'";
 
 export const defaultRegistryTypes: ReadonlyArray<[string, GeneratedType]> = [
   ["/cosmos.base.v1beta1.Coin", Coin],
@@ -281,6 +289,7 @@ export class SigningStargateClient extends StargateClient {
     timeoutTimestamp: number | undefined,
     fee: StdFee | "auto" | number,
     memo = "",
+    coinType = "",
   ): Promise<DeliverTxResponse> {
     const timeoutTimestampNanoseconds = timeoutTimestamp
       ? BigInt(timeoutTimestamp) * BigInt(1_000_000_000)
@@ -297,7 +306,7 @@ export class SigningStargateClient extends StargateClient {
         timeoutTimestamp: timeoutTimestampNanoseconds,
       }),
     };
-    return this.signAndBroadcast(senderAddress, [transferMsg], fee, memo);
+    return this.signAndBroadcast(senderAddress, [transferMsg], fee, memo, coinType);
   }
 
   public async signAndBroadcast(
@@ -305,6 +314,7 @@ export class SigningStargateClient extends StargateClient {
     messages: readonly EncodeObject[],
     fee: StdFee | "auto" | number,
     memo = "",
+    coinType = "",
     timeoutHeight?: bigint,
   ): Promise<DeliverTxResponse> {
     let usedFee: StdFee;
@@ -316,7 +326,7 @@ export class SigningStargateClient extends StargateClient {
     } else {
       usedFee = fee;
     }
-    const txRaw = await this.sign(signerAddress, messages, usedFee, memo, undefined, timeoutHeight);
+    const txRaw = await this.sign(signerAddress, messages, usedFee, memo, coinType, undefined, timeoutHeight);
     const txBytes = TxRaw.encode(txRaw).finish();
     return this.broadcastTx(txBytes, this.broadcastTimeoutMs, this.broadcastPollIntervalMs);
   }
@@ -332,6 +342,7 @@ export class SigningStargateClient extends StargateClient {
     messages: readonly EncodeObject[],
     fee: StdFee | "auto" | number,
     memo = "",
+    coinType = "",
     timeoutHeight?: bigint,
   ): Promise<string> {
     let usedFee: StdFee;
@@ -343,7 +354,7 @@ export class SigningStargateClient extends StargateClient {
     } else {
       usedFee = fee;
     }
-    const txRaw = await this.sign(signerAddress, messages, usedFee, memo, undefined, timeoutHeight);
+    const txRaw = await this.sign(signerAddress, messages, usedFee, memo, coinType, undefined, timeoutHeight);
     const txBytes = TxRaw.encode(txRaw).finish();
     return this.broadcastTxSync(txBytes);
   }
@@ -363,6 +374,7 @@ export class SigningStargateClient extends StargateClient {
     messages: readonly EncodeObject[],
     fee: StdFee,
     memo: string,
+    coinType: string,
     explicitSignerData?: SignerData,
     timeoutHeight?: bigint,
   ): Promise<TxRaw> {
@@ -380,8 +392,8 @@ export class SigningStargateClient extends StargateClient {
     }
 
     return isOfflineDirectSigner(this.signer)
-      ? this.signDirect(signerAddress, messages, fee, memo, signerData, timeoutHeight)
-      : this.signAmino(signerAddress, messages, fee, memo, signerData, timeoutHeight);
+      ? this.signDirect(signerAddress, messages, fee, memo, coinType,signerData, timeoutHeight)
+      : this.signAmino(signerAddress, messages, fee, memo, coinType,signerData, timeoutHeight);
   }
 
   private async signAmino(
@@ -389,6 +401,7 @@ export class SigningStargateClient extends StargateClient {
     messages: readonly EncodeObject[],
     fee: StdFee,
     memo: string,
+    coinType: string,
     { accountNumber, sequence, chainId }: SignerData,
     timeoutHeight?: bigint,
   ): Promise<TxRaw> {
@@ -399,7 +412,19 @@ export class SigningStargateClient extends StargateClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
+
+    let pubkey;
+    switch (true) {
+      case coinType === hardenedEthermintCoinType || coinType === ethermintCoinType: {
+        pubkey = encodePubkey(encodeEthSecp256k1Pubkey(accountFromSigner.pubkey));
+        break;
+      }
+      default: {
+        pubkey = encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
+        break;
+      }
+    }
+
     const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
     const msgs = messages.map((msg) => this.aminoTypes.toAmino(msg));
     const signDoc = makeSignDocAmino(msgs, fee, chainId, memo, accountNumber, sequence, timeoutHeight);
@@ -436,6 +461,7 @@ export class SigningStargateClient extends StargateClient {
     messages: readonly EncodeObject[],
     fee: StdFee,
     memo: string,
+    coinType: string,
     { accountNumber, sequence, chainId }: SignerData,
     timeoutHeight?: bigint,
   ): Promise<TxRaw> {
@@ -446,7 +472,19 @@ export class SigningStargateClient extends StargateClient {
     if (!accountFromSigner) {
       throw new Error("Failed to retrieve account from signer");
     }
-    const pubkey = encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
+    
+    let pubkey;
+    switch (true) {
+      case coinType === hardenedEthermintCoinType || coinType === ethermintCoinType: {
+        pubkey = encodePubkey(encodeEthSecp256k1Pubkey(accountFromSigner.pubkey));
+        break;
+      }
+      default: {
+        pubkey = encodePubkey(encodeSecp256k1Pubkey(accountFromSigner.pubkey));
+        break;
+      }
+    }
+
     const txBodyEncodeObject: TxBodyEncodeObject = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {

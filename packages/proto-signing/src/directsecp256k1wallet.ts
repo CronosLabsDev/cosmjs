@@ -41,6 +41,7 @@ export class DirectSecp256k1Wallet implements OfflineDirectSigner {
     return [
       {
         algo: "secp256k1",
+        coinType: "",
         address: this.address,
         pubkey: this.pubkey,
       },
